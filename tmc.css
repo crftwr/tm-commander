@@ -1,0 +1,25 @@
+Static {
+    content-align: center middle;
+    background: black;
+    border: solid gray;
+}
+
+.upper-pane {
+    width: 1fr;
+    height: 2fr;
+}
+
+.filelist-pane {
+    width: 1fr;
+    height: 1fr;
+}
+
+.lower-pane {
+    width: 1fr;
+    height: 1fr;
+}
+
+.status-bar {
+    width: 1fr;
+    height: 1;
+}
