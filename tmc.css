@@ -7,11 +7,13 @@ Static {
 .upper-pane {
     width: 1fr;
     height: 2fr;
+    border: none;
 }
 
 .lower-pane {
     width: 1fr;
     height: 1fr;
+    border: none;
 }
 
 .status-bar {
@@ -25,6 +27,7 @@ Static {
 .filelist-pane {
     width: 1fr;
     height: 1fr;
+    border: round white;
 }
 
 .filelist-title {
