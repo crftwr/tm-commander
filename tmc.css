@@ -50,6 +50,12 @@ Static {
     border: none;
 }
 
+.filelist-item {
+    width: 1fr;
+    height: 1;
+    border: none;
+}
+
 .filelist-footer {
     width: 1fr;
     height: 1;
