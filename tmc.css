@@ -51,9 +51,25 @@ Static {
 }
 
 .filelist-item {
+    layout: horizontal;
     width: 1fr;
     height: 1;
     border: none;
+}
+
+.file-name {
+    content-align: left middle;
+    height: 1;
+    border: none;
+}
+
+.file-stats {
+    dock: right;
+    content-align: right middle;
+    width: auto;
+    height: 1;
+    border: none;
+    background: blue;    
 }
 
 .filelist-footer {

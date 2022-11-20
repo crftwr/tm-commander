@@ -2,12 +2,15 @@ import os
 import fnmatch
 import datetime
 
+from rich.text import Text
+
 from textual.app import App, ComposeResult, RenderResult
 from textual.reactive import reactive
 from textual.widget import Widget
 from textual.widgets import Static
 from textual.containers import Container, Horizontal, Vertical
 
+import tmc_misc
 
 # ---
 
@@ -64,15 +67,21 @@ class WildcardFilter(Filter):
 
 # ---
 
-class FileItemWidgeet(Widget):
+class FileItemWidgeet(Static):
 
     def __init__( self, item, **args ):
-        Widget.__init__( self, **args )
+        Static.__init__( self, **args )
         self.item = item
 
-    def render(self) -> RenderResult:
+    def compose(self) -> ComposeResult:
+
+        # TODO : 拡張子も別カラムに表示する
+
+        s_size = "%6s" % tmc_misc.getFileSizeString(self.item.size)
         s_mtime = datetime.datetime.fromtimestamp(self.item.mtime).strftime( "%Y-%m-%d %H:%M:%S" )
-        return f"[b]{self.item.name}[/b] : {self.item.size} : {s_mtime}"
+
+        yield Static( Text( self.item.name, no_wrap=True, overflow="ellipsis" ), classes="file-name" )
+        yield Static( f" {s_size} {s_mtime}", classes="file-stats" )
 
 
 class FileListPane(Static):
@@ -112,7 +121,6 @@ class FileListPane(Static):
         for item in items_sorted:
             item = FileItemWidgeet( item, classes="filelist-item" )
             container.mount(item)
-
 
 
 class FileCommanderApp(App):
