@@ -85,7 +85,7 @@ class FileItemWidgeet(Static):
         yield Static( f" {s_size} {s_mtime}", classes="file-stats" )
 
 
-class FileListPane(Static):
+class FileListPane( Static, can_focus=True, can_focus_children=False ):
 
     def __init__( self, **args ):
         Static.__init__( self, **args )
@@ -101,6 +101,9 @@ class FileListPane(Static):
             Container( classes = "filelist-items" ),
             Static( "Footer", classes="filelist-footer" ),
         )
+
+    def on_key( self, event ):
+        print( "FileListPane.on_key called", event)
 
     def action_update( self, location ):
 
@@ -144,6 +147,10 @@ class FileCommanderApp(App):
             TextLog( id="lower-pane", classes="log-pane", max_lines=10000 ),
             Static("Status Bar", classes="status-bar" ),
         )
+
+    def on_mount(self):
+        self.query_one("#left-pane").focus()
+        self.action_goto()
 
     def action_log(self):
         self.query_one("#lower-pane").write("Hello")

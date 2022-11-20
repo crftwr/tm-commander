@@ -13,7 +13,11 @@ Static {
 .log-pane {
     width: 1fr;
     height: 1fr;
-    border: none;
+    border: round gray;
+}
+
+.log-pane:focus {
+    border: round white;
 }
 
 .status-bar {
@@ -27,6 +31,10 @@ Static {
 .filelist-pane {
     width: 1fr;
     height: 1fr;
+    border: round gray;
+}
+
+.filelist-pane:focus {
     border: round white;
 }
 
