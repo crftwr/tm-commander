@@ -40,14 +40,25 @@ class Filter:
 
 class WildcardFilter(Filter):
 
-    def __init__( self, include_pattern, exclude_pattern ):
-        self.include_pattern = include_pattern
-        self.exclude_pattern = exclude_pattern
+    def __init__( self, include_patterns, exclude_patterns ):
+        self.include_patterns = include_patterns
+        self.exclude_patterns = exclude_patterns
 
     def apply( self, items ):
         
         def cond( item ):
-            return fnmatch.fnmatch( item.name, self.include_pattern ) and not fnmatch.fnmatch( item.name, self.exclude_pattern )
+
+            for include_pattern in self.include_patterns:
+                if fnmatch.fnmatch( item.name, include_pattern ):
+                    break
+            else:
+                return False
+
+            for exclude_pattern in self.exclude_patterns:
+                if fnmatch.fnmatch( item.name, exclude_pattern ):
+                    return False
+
+            return True
 
         return filter( cond, items )
 
@@ -70,7 +81,7 @@ class FileListPane(Static):
         Static.__init__( self, **args )
 
         self.location = "." # FIXME : ファイルリストクラスにする
-        self.filter = WildcardFilter( include_pattern="*", exclude_pattern=".*" )
+        self.filter = WildcardFilter( include_patterns=["*"], exclude_patterns=[".*"] )
 
     def compose(self) -> ComposeResult:
 
