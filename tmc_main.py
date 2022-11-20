@@ -129,6 +129,7 @@ class FileCommanderApp(App):
 
     BINDINGS = [
         ("d", "goto()", "Goto"),
+        ("q", "quit()", "Quit"),
     ]
 
     def compose(self) -> ComposeResult:
@@ -143,8 +144,8 @@ class FileCommanderApp(App):
         )
 
     def action_goto( self ):
-        print( "Goto action" )
-        self.query_one("#left-pane").action_update( location = "/Users/crftwr" )
+        self.query_one("#left-pane").action_update( location = os.path.abspath("./test-data/Folder1") )
+        self.query_one("#right-pane").action_update( location = os.path.abspath("./test-data/Folder2") )
 
 
 if __name__ == "__main__":
