@@ -8,6 +8,7 @@ from textual.app import App, ComposeResult, RenderResult
 from textual.reactive import reactive
 from textual.widget import Widget
 from textual.widgets import Static
+from textual.widgets import TextLog
 from textual.containers import Container, Horizontal, Vertical
 
 import tmc_misc
@@ -129,6 +130,7 @@ class FileCommanderApp(App):
 
     BINDINGS = [
         ("d", "goto()", "Goto"),
+        ("l", "log()", "Log"),
         ("q", "quit()", "Quit"),
     ]
 
@@ -139,11 +141,14 @@ class FileCommanderApp(App):
                 FileListPane( id="right-pane", classes="filelist-pane" ),
                 classes="upper-pane",
             ),
-            Static("Log pane", classes="lower-pane" ),
+            TextLog( id="lower-pane", classes="log-pane", max_lines=10000 ),
             Static("Status Bar", classes="status-bar" ),
         )
 
-    def action_goto( self ):
+    def action_log(self):
+        self.query_one("#lower-pane").write("Hello")
+
+    def action_goto(self):
         self.query_one("#left-pane").action_update( location = os.path.abspath("./test-data/Folder1") )
         self.query_one("#right-pane").action_update( location = os.path.abspath("./test-data/Folder2") )
 
