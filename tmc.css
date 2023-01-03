@@ -66,9 +66,15 @@ Static {
     border: none;
 }
 
+.filelist-item.cursor {
+    background: darkblue;
+    border: none;
+}
+
 .file-name {
     content-align: left middle;
     height: 1;
+    background: transparent;
     border: none;
 }
 
@@ -77,6 +83,7 @@ Static {
     content-align: right middle;
     width: auto;
     height: 1;
+    background: transparent;
     border: none;
 }
 

@@ -22,15 +22,6 @@ class Item:
         self.size = size
         self.mtime = mtime
 
-
-"""
-class FileItem(Item):
-
-    def __init__( self, name, size, mtime ):
-        Item.__init__( self, name, size, mtime )
-"""
-
-
 # ---
 
 class Filter:
@@ -84,8 +75,15 @@ class FileItemWidgeet(Static):
         yield Static( Text( self.item.name, no_wrap=True, overflow="ellipsis" ), classes="file-name" )
         yield Static( f" {s_size} {s_mtime}", classes="file-stats" )
 
+class FileListWidget(Container):
+    pass
 
 class FileListPane( Static, can_focus=True, can_focus_children=False ):
+
+    BINDINGS = [
+        ("up",   "move_cursor_prev", "Move cursor to previous item" ),
+        ("down", "move_cursor_next", "Move cursor to next item" ),
+    ]
 
     def __init__( self, **args ):
         Static.__init__( self, **args )
@@ -93,17 +91,46 @@ class FileListPane( Static, can_focus=True, can_focus_children=False ):
         self.location = "." # FIXME : ファイルリストクラスにする
         self.filter = WildcardFilter( include_patterns=["*"], exclude_patterns=[".*"] )
 
+        self.cursor = 0
+
     def compose(self) -> ComposeResult:
 
         yield Vertical(
             Static( "Title", classes="filelist-title" ),
             Static( "Header", classes="filelist-header" ),
-            Container( classes = "filelist-items" ),
+            FileListWidget( classes = "filelist-items" ),
             Static( "Footer", classes="filelist-footer" ),
         )
 
-    def on_key( self, event ):
-        print( "FileListPane.on_key called", event)
+    def on_focus( self, event ):
+        print("on_focus", event)
+        self.action_update_cursor( advance=0 )
+
+    def on_blur( self, event ):
+        print("on_blur", event)
+        self.action_update_cursor( advance=0, show=False )
+
+    def action_update_cursor( self, advance, show=True ):
+
+        container = self.query_one(".filelist-items")
+
+        if self.cursor is not None:
+            container.children[self.cursor].remove_class("cursor")
+
+        new_cursor = self.cursor + advance
+        if new_cursor>=0 and new_cursor<len(container.children):
+            self.cursor = new_cursor
+
+        if show:
+            container.children[self.cursor].add_class("cursor")
+
+        container.children[self.cursor].scroll_visible()
+
+    def action_move_cursor_prev(self):
+        self.action_update_cursor( advance = -1 )
+
+    def action_move_cursor_next(self):
+        self.action_update_cursor( advance = 1 )
 
     def action_update( self, location ):
 
@@ -126,15 +153,17 @@ class FileListPane( Static, can_focus=True, can_focus_children=False ):
             item = FileItemWidgeet( item, classes="filelist-item" )
             container.mount(item)
 
+class LogPane( TextLog, can_focus=False, can_focus_children=False ):
+    pass
 
 class FileCommanderApp(App):
 
     CSS_PATH = "tmc.css"
 
     BINDINGS = [
-        ("d", "goto()", "Goto"),
-        ("l", "log()", "Log"),
-        ("q", "quit()", "Quit"),
+        ("d",   "goto()", "Goto"),
+        ("l",   "log()", "Log"),
+        ("q",   "quit()", "Quit"),
     ]
 
     def compose(self) -> ComposeResult:
@@ -144,7 +173,7 @@ class FileCommanderApp(App):
                 FileListPane( id="right-pane", classes="filelist-pane" ),
                 classes="upper-pane",
             ),
-            TextLog( id="lower-pane", classes="log-pane", max_lines=10000 ),
+            LogPane( id="lower-pane", classes="log-pane", max_lines=10000 ),
             Static("Status Bar", classes="status-bar" ),
         )
 
@@ -153,7 +182,7 @@ class FileCommanderApp(App):
         self.action_goto()
 
     def action_log(self):
-        self.query_one("#lower-pane").write("Hello")
+        self.query_one("#lower-pane").write( datetime.datetime.now().isoformat() )
 
     def action_goto(self):
         self.query_one("#left-pane").action_update( location = os.path.abspath("./test-data/Folder1") )
