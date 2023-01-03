@@ -64,6 +64,7 @@ class FileItemWidgeet(Static):
     def __init__( self, item, **args ):
         Static.__init__( self, **args )
         self.item = item
+        self.selected = False
 
     def compose(self) -> ComposeResult:
 
@@ -72,8 +73,26 @@ class FileItemWidgeet(Static):
         s_size = "%6s" % tmc_misc.getFileSizeString(self.item.size)
         s_mtime = datetime.datetime.fromtimestamp(self.item.mtime).strftime( "%Y-%m-%d %H:%M:%S" )
 
+        yield Static( "  ", classes="file-cursor" )
         yield Static( Text( self.item.name, no_wrap=True, overflow="ellipsis" ), classes="file-name" )
         yield Static( f" {s_size} {s_mtime}", classes="file-stats" )
+
+    def show_cursor(self, show=True):
+
+        cursor = self.query_one(".file-cursor")
+        if show:
+            cursor.update("▶︎ ")
+        else:
+            cursor.update("  ")
+
+    def select( self, select=True ):
+
+        self.selected = select
+
+        if self.selected:
+            self.add_class("selected")
+        else:
+            self.remove_class("selected")
 
 class FileListWidget(Container):
     pass
@@ -81,8 +100,9 @@ class FileListWidget(Container):
 class FileListPane( Static, can_focus=True, can_focus_children=False ):
 
     BINDINGS = [
-        ("up",   "move_cursor_prev", "Move cursor to previous item" ),
+        ("up", "move_cursor_prev", "Move cursor to previous item" ),
         ("down", "move_cursor_next", "Move cursor to next item" ),
+        ("space", "select_single_item(1)", "Select or unselect single item and move cursor to next item" ),
     ]
 
     def __init__( self, **args ):
@@ -115,14 +135,14 @@ class FileListPane( Static, can_focus=True, can_focus_children=False ):
         container = self.query_one(".filelist-items")
 
         if self.cursor is not None:
-            container.children[self.cursor].remove_class("cursor")
+            container.children[self.cursor].show_cursor(False)
 
         new_cursor = self.cursor + advance
         if new_cursor>=0 and new_cursor<len(container.children):
             self.cursor = new_cursor
 
         if show:
-            container.children[self.cursor].add_class("cursor")
+            container.children[self.cursor].show_cursor(True)
 
         container.children[self.cursor].scroll_visible()
 
@@ -132,7 +152,20 @@ class FileListPane( Static, can_focus=True, can_focus_children=False ):
     def action_move_cursor_next(self):
         self.action_update_cursor( advance = 1 )
 
-    def action_update( self, location ):
+    def action_select_single_item( self, move_cursor ):
+        
+        if self.cursor is None: return
+
+        container = self.query_one(".filelist-items")
+        item_widget = container.children[self.cursor]
+        item_widget.select( not item_widget.selected )
+
+        if move_cursor == 1:
+            self.action_move_cursor_next()
+        elif move_cursor == -1:
+            self.action_move_cursor_prev()
+
+    def action_update_location( self, location ):
 
         self.location = location
         self.query_one(".filelist-title").update(location)
@@ -178,15 +211,15 @@ class FileCommanderApp(App):
         )
 
     def on_mount(self):
-        self.query_one("#left-pane").focus()
+        #self.query_one("#left-pane").focus()
         self.action_goto()
 
     def action_log(self):
         self.query_one("#lower-pane").write( datetime.datetime.now().isoformat() )
 
     def action_goto(self):
-        self.query_one("#left-pane").action_update( location = os.path.abspath("./test-data/Folder1") )
-        self.query_one("#right-pane").action_update( location = os.path.abspath("./test-data/Folder2") )
+        self.query_one("#left-pane").action_update_location( location = os.path.abspath("./test-data/Folder1") )
+        self.query_one("#right-pane").action_update_location( location = os.path.abspath("./test-data/Folder2") )
 
 
 if __name__ == "__main__":

@@ -66,8 +66,15 @@ Static {
     border: none;
 }
 
-.filelist-item.cursor {
-    background: darkblue;
+.filelist-item.selected {
+    background: blue;
+    border: none;
+}
+
+.file-cursor {
+    dock: left;
+    width: auto;
+    height: 1;
     border: none;
 }
 
