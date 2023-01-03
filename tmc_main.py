@@ -1,4 +1,5 @@
 import os
+import stat
 import fnmatch
 import datetime
 
@@ -17,10 +18,19 @@ import tmc_misc
 
 class Item:
 
-    def __init__( self, name, size, mtime ):
+    DIRECTORY = 0x01
+
+    def __init__( self, name, size, mtime, directory ):
         self.name = name
         self.size = size
         self.mtime = mtime
+        self.flags = 0
+
+        if directory:
+            self.flags |= Item.DIRECTORY
+
+    def isdir(self):
+        return bool(self.flags & Item.DIRECTORY)
 
 # ---
 
@@ -103,6 +113,8 @@ class FileListPane( Static, can_focus=True, can_focus_children=False ):
         ("up", "move_cursor_prev", "Move cursor to previous item" ),
         ("down", "move_cursor_next", "Move cursor to next item" ),
         ("space", "select_single_item(1)", "Select or unselect single item and move cursor to next item" ),
+        ("enter", "open", "Open item" ),
+        ("backspace", "open_parent", "Open parent directory of the item" ),
     ]
 
     def __init__( self, **args ):
@@ -174,7 +186,7 @@ class FileListPane( Static, can_focus=True, can_focus_children=False ):
         for filename in os.listdir( self.location ):
             fullpath = os.path.join( self.location, filename )
             st = os.stat( fullpath )
-            items_listed.append( Item(filename, st.st_size, st.st_mtime) )
+            items_listed.append( Item(filename, st.st_size, st.st_mtime, directory = stat.S_ISDIR(st.st_mode) ) )
 
         items_filtered = self.filter.apply( items_listed )
         items_sorted = items_filtered
@@ -185,6 +197,29 @@ class FileListPane( Static, can_focus=True, can_focus_children=False ):
         for item in items_sorted:
             item = FileItemWidgeet( item, classes="filelist-item" )
             container.mount(item)
+
+        self.cursor = 0
+
+    def action_open(self):
+
+        if self.cursor is None: return
+
+        container = self.query_one(".filelist-items")
+        item = container.children[self.cursor].item
+        if item.isdir():
+            print( "This is Directory" )
+
+            new_location = os.path.join( self.location, item.name )
+
+            self.action_update_location( new_location )
+
+            return
+
+    def action_open_parent(self):
+
+        new_location = os.path.split( self.location )[0]
+        self.action_update_location( new_location )
+
 
 class LogPane( TextLog, can_focus=False, can_focus_children=False ):
     pass
