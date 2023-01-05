@@ -46,6 +46,8 @@ class Filter:
 class WildcardFilter(Filter):
 
     def __init__( self, include_patterns, exclude_patterns ):
+        super().__init__()
+
         self.include_patterns = include_patterns
         self.exclude_patterns = exclude_patterns
 
@@ -72,7 +74,8 @@ class WildcardFilter(Filter):
 class FileItemWidgeet(Static):
 
     def __init__( self, item, **args ):
-        Static.__init__( self, **args )
+        super().__init__( **args )
+
         self.item = item
         self.selected = False
 
@@ -107,7 +110,7 @@ class FileItemWidgeet(Static):
 class FileListWidget(Container):
     pass
 
-class FileListPane( Static, can_focus=True, can_focus_children=False ):
+class FileListPane( Container, can_focus=True, can_focus_children=False ):
 
     BINDINGS = [
         ("up", "move_cursor_prev", "Move cursor to previous item" ),
@@ -118,7 +121,7 @@ class FileListPane( Static, can_focus=True, can_focus_children=False ):
     ]
 
     def __init__( self, **args ):
-        Static.__init__( self, **args )
+        super().__init__( **args )
 
         self.location = "." # FIXME : ファイルリストクラスにする
         self.filter = WildcardFilter( include_patterns=["*"], exclude_patterns=[".*"] )
@@ -224,6 +227,21 @@ class FileListPane( Static, can_focus=True, can_focus_children=False ):
 class LogPane( TextLog, can_focus=False, can_focus_children=False ):
     pass
 
+
+class ListDialog( Container, can_focus=True ):
+
+    def __init__( self, **args ):
+        super().__init__( **args )
+
+    def compose(self) -> ComposeResult:
+
+        yield Vertical(
+            Static( "Title", classes="dialog-title" ),
+            Static( "List here", classes = "dialog-contents" ),
+            Static( "Footer", classes="dialog-footer" ),
+        )
+
+
 class FileCommanderApp(App):
 
     CSS_PATH = "tmc.css"
@@ -231,6 +249,7 @@ class FileCommanderApp(App):
     BINDINGS = [
         ("d",   "goto()", "Goto"),
         ("l",   "log()", "Log"),
+        ("j",   "jump()", "Jump"),
         ("q",   "quit()", "Quit"),
     ]
 
@@ -243,6 +262,7 @@ class FileCommanderApp(App):
             ),
             LogPane( id="lower-pane", classes="log-pane", max_lines=10000 ),
             Static("Status Bar", classes="status-bar" ),
+            classes="main-window",
         )
 
     def on_mount(self):
@@ -251,6 +271,14 @@ class FileCommanderApp(App):
 
     def action_log(self):
         self.query_one("#lower-pane").write( datetime.datetime.now().isoformat() )
+
+    def action_jump(self):
+
+        self.query_one(".main-window").can_focus_children = False
+
+        dialog = ListDialog( classes="list-dialog" )
+        self.mount( dialog )
+        dialog.focus()
 
     def action_goto(self):
         self.query_one("#left-pane").action_update_location( location = os.path.abspath("./test-data/Folder1") )

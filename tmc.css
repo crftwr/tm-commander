@@ -1,23 +1,25 @@
-Static {
-    content-align: center middle;
-    background: black;
-    border: solid gray;
+Screen {
+    align: center middle;
+    layers: main dialog;
+}
+
+.main-window {
+    layer: main;
 }
 
 .upper-pane {
     width: 1fr;
     height: 2fr;
     border: none;
+    background: black;
 }
 
 .log-pane {
     width: 1fr;
     height: 1fr;
     border: round gray;
-}
-
-.log-pane:focus {
-    border: round white;
+    color: white;
+    background: black;
 }
 
 .status-bar {
@@ -25,13 +27,15 @@ Static {
     height: 1;
     border: none;
     color: black;
-    background: gray;
+    background: lightblue;
+    text-style: bold;
 }
 
 .filelist-pane {
     width: 1fr;
     height: 1fr;
     border: round gray;
+    background: black;
 }
 
 .filelist-pane:focus {
@@ -48,15 +52,27 @@ Static {
 .filelist-header {
     width: 1fr;
     height: 1;
+    content-align: center middle;
     border: none;
     color: black;
-    background: gray;
+    background: lightblue;
+    text-style: bold;
 }
 
 .filelist-items {
     width: 1fr;
     height: 1fr;
     border: none;
+}
+
+.filelist-footer {
+    width: 1fr;
+    height: 1;
+    content-align: center middle;
+    border: none;
+    color: black;
+    background: lightblue;
+    text-style: bold;
 }
 
 .filelist-item {
@@ -94,10 +110,18 @@ Static {
     border: none;
 }
 
-.filelist-footer {
-    width: 1fr;
-    height: 1;
-    border: none;
-    color: black;
-    background: gray;
+.list-dialog {
+
+    layer: dialog;
+
+    offset: 0 0;
+    width: 60%;
+    height: 60%;
+    border: round gray;
+    background: transparent;
 }
+
+.list-dialog:focus {
+    border: round white;
+}
+
