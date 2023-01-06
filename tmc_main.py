@@ -11,7 +11,9 @@ from textual.widget import Widget
 from textual.widgets import Static
 from textual.widgets import TextLog
 from textual.containers import Container, Horizontal, Vertical
+from textual.screen import Screen
 
+import tmc_list
 import tmc_misc
 
 # ---
@@ -198,10 +200,12 @@ class FileListPane( Container, can_focus=True, can_focus_children=False ):
         container.query( ".filelist-item" ).remove()
 
         for item in items_sorted:
-            item = FileItemWidgeet( item, classes="filelist-item" )
-            container.mount(item)
+            item_widget = FileItemWidgeet( item, classes="filelist-item" )
+            container.mount(item_widget)
 
         self.cursor = 0
+
+        #self.action_update_cursor(0)
 
     def action_open(self):
 
@@ -228,29 +232,14 @@ class LogPane( TextLog, can_focus=False, can_focus_children=False ):
     pass
 
 
-class ListDialog( Container, can_focus=True ):
-
-    def __init__( self, **args ):
-        super().__init__( **args )
-
-    def compose(self) -> ComposeResult:
-
-        yield Vertical(
-            Static( "Title", classes="dialog-title" ),
-            Static( "List here", classes = "dialog-contents" ),
-            Static( "Footer", classes="dialog-footer" ),
-        )
-
-
-class FileCommanderApp(App):
-
-    CSS_PATH = "tmc.css"
+class MainScreen(Screen):
 
     BINDINGS = [
         ("d",   "goto()", "Goto"),
         ("l",   "log()", "Log"),
         ("j",   "jump()", "Jump"),
         ("q",   "quit()", "Quit"),
+        ("question_mark", "debug()", "Debug"),
     ]
 
     def compose(self) -> ComposeResult:
@@ -274,15 +263,46 @@ class FileCommanderApp(App):
 
     def action_jump(self):
 
-        self.query_one(".main-window").can_focus_children = False
+        items = [
+            ( "/Users/crftwr/Projects/tm-commander", "/Users/crftwr/Projects/tm-commander" ),
+            ( "/Users/crftwr/Projects/tm-commander/test-data", "/Users/crftwr/Projects/tm-commander/test-data" ),
+            ( "/Users/crftwr/Projects/tm-commander/test-data/Folder1", "/Users/crftwr/Projects/tm-commander/test-data/Folder1" ),
+        ]
 
-        dialog = ListDialog( classes="list-dialog" )
-        self.mount( dialog )
-        dialog.focus()
+        def list_screen_callback(item):
+            
+            if item is None: return
+
+            self.query_one("#left-pane").action_update_location( location = item[1] )
+
+
+        list_screen = tmc_list.ListScreen( items, list_screen_callback, id = "list" )
+        self.app.push_screen(list_screen)
 
     def action_goto(self):
         self.query_one("#left-pane").action_update_location( location = os.path.abspath("./test-data/Folder1") )
         self.query_one("#right-pane").action_update_location( location = os.path.abspath("./test-data/Folder2") )
+
+    def action_debug(self):
+        print( "Screen stack :", self.app.screen_stack )
+        print( "Focus chain :", self.focus_chain )
+
+
+class FileCommanderApp(App):
+
+    CSS_PATH = "tmc.css"
+
+    BINDINGS = [
+        ("question_mark", "debug()", "Debug"),
+    ]
+
+    def on_mount(self):
+        self.install_screen( MainScreen(), name="main" )
+        self.push_screen("main")
+
+    def action_debug(self):
+        print( "Screen stack :", self.screen_stack )
+        print( "Focus chain :", self.screen.focus_chain )
 
 
 if __name__ == "__main__":
