@@ -1,5 +1,6 @@
 import os
 import stat
+import time
 import fnmatch
 import datetime
 
@@ -14,6 +15,7 @@ from textual.containers import Container, Horizontal, Vertical
 from textual.screen import Screen
 
 import tmc_list
+import tmc_task
 import tmc_misc
 
 # ---
@@ -120,6 +122,7 @@ class FileListPane( Container, can_focus=True, can_focus_children=False ):
         ("space", "select_single_item(1)", "Select or unselect single item and move cursor to next item" ),
         ("enter", "open", "Open item" ),
         ("backspace", "open_parent", "Open parent directory of the item" ),
+        ("c", "copy_files", "Copy selected files" ),
     ]
 
     def __init__( self, **args ):
@@ -227,6 +230,26 @@ class FileListPane( Container, can_focus=True, can_focus_children=False ):
         new_location = os.path.split( self.location )[0]
         self.action_update_location( new_location )
 
+    async def action_copy_files(self):
+
+        print( "action_copy_files" )
+
+        class CopyFilesTask(tmc_task.Taks):
+            
+            def __init__( self, name ):
+                super().__init__()
+                self.name = name
+            
+            def run(self):
+                print( "CopyFilesTask.run", self.name )
+                time.sleep(5)
+
+            def finish(self):
+                print( "CopyFilesTask.finish", self.name )
+
+        task = CopyFilesTask( "copy " + datetime.datetime.now().isoformat() )
+        self.app.task_manager.enqueue(task)
+
 
 class LogPane( TextLog, can_focus=False, can_focus_children=False ):
     pass
@@ -296,9 +319,18 @@ class FileCommanderApp(App):
         ("question_mark", "debug()", "Debug"),
     ]
 
+    def __init__(self):
+        super().__init__()
+        self.task_manager = tmc_task.TaskManager()
+
     def on_mount(self):
         self.install_screen( MainScreen(), name="main" )
         self.push_screen("main")
+
+        self.set_interval( 1/60, self.update )
+
+    def update(self):
+        self.task_manager.check()
 
     def action_debug(self):
         print( "Screen stack :", self.screen_stack )
