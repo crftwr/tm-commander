@@ -32,22 +32,34 @@ class TaskManager:
 
         while True:
         
+            # queue is empty
             if not self.tasks:
                 break
 
-            if self.tasks[0].canceled:
-                del self.tasks[0]
-                continue
+            head = self.tasks[0]
 
-            if not self.tasks[0].started:
-                assert not self.tasks[0].is_alive()
-                self.tasks[0].start()
-                assert self.tasks[0].is_alive()
+            # consume head
+            if not head.started:
+
+                if head.canceled:
+                    self.tasks.pop()
+                    continue
+
+                assert not head.is_alive()
+                head.start()
+                assert head.is_alive()
+
                 break
 
-            if not self.tasks[0].is_alive():
-                self.tasks[0].finish()
-                del self.tasks[0]
-                continue
+            # head is finished
+            if not head.is_alive():
+        
+                head.finish()
+                head.join()
+                self.tasks.pop()
 
+                continue
+            
+            # head is running
+            break
 

@@ -231,8 +231,15 @@ class FileListPane( Container, can_focus=True, can_focus_children=False ):
         self.action_update_location( new_location )
 
     async def action_copy_files(self):
+        
+        src = self.location
+        dst = self.another.location
 
-        print( "action_copy_files" )
+        items = []
+        container = self.query_one(".filelist-items")
+        for item_widget in container.children:
+            if item_widget.selected:
+                items.append( item_widget.item )
 
         class CopyFilesTask(tmc_task.Taks):
             
@@ -241,11 +248,16 @@ class FileListPane( Container, can_focus=True, can_focus_children=False ):
                 self.name = name
             
             def run(self):
-                print( "CopyFilesTask.run", self.name )
-                time.sleep(5)
+                for item in items:
+                    
+                    src_filepath = os.path.join( src, item.name )
+                    dst_filepath = os.path.join( dst, item.name )
+
+                    print( "Copying", src_filepath, "->", dst_filepath )
+                    time.sleep(0.1) # FIXME : for testing
 
             def finish(self):
-                print( "CopyFilesTask.finish", self.name )
+                print( "Done." )
 
         task = CopyFilesTask( "copy " + datetime.datetime.now().isoformat() )
         self.app.task_manager.enqueue(task)
@@ -278,7 +290,10 @@ class MainScreen(Screen):
         )
 
     def on_mount(self):
-        #self.query_one("#left-pane").focus()
+
+        self.query_one("#left-pane").another = self.query_one("#right-pane")
+        self.query_one("#right-pane").another = self.query_one("#left-pane")
+
         self.action_goto()
 
     def action_log(self):
@@ -327,7 +342,8 @@ class FileCommanderApp(App):
         self.install_screen( MainScreen(), name="main" )
         self.push_screen("main")
 
-        self.set_interval( 1/60, self.update )
+        interval = 1/60
+        self.set_interval( interval, self.update )
 
     def update(self):
         self.task_manager.check()
